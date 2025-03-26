@@ -1,0 +1,3 @@
+label:fast-blink.ino
+board:Arduino Uno
+date:26 Mar 2025, 10:21:45

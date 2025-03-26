@@ -1,18 +1,12 @@
 import subprocess
 import os
+from logger import logger
 
-# === CONFIGURATION ===
 arduino_cli_path = "arduino-cli"
-board_fqbn = "arduino:avr:uno"  # Change based on your board
-ino_file_path = "sketch/fast-blink/fast-blink.ino"  # Full path to the .ino file
-
-# Extract the folder containing the .ino file
-sketch_path = os.path.dirname(os.path.abspath(ino_file_path))
-build_path = os.path.join(sketch_path, "build")
 
 def compile_sketch(sketch_path, fqbn, build_path):
     try:
-        print(f"Compiling sketch at: {sketch_path}")
+        logger.info(f"Compiling sketch at: {sketch_path}")
         os.makedirs(build_path, exist_ok=True)
 
         result = subprocess.run(
@@ -26,18 +20,18 @@ def compile_sketch(sketch_path, fqbn, build_path):
         )
 
         if result.returncode == 0:
-            print("✅ Compilation successful!")
+            logger.info("✅ Compilation successful!")
+            # Rename *.hex to match <build_folder>.hex
             for file in os.listdir(build_path):
-                if file.endswith(".hex") or file.endswith(".bin"):
-                    hex_path = os.path.join(build_path, file)
-                    print(f"👉 Compiled sketch located at: {hex_path}")
-                    return hex_path
-            print("⚠️ Compiled file not found in output directory.")
+                if file.endswith(".hex"):
+                    original = os.path.join(build_path, file)
+                    final = os.path.join(build_path, os.path.basename(build_path) + ".hex")
+                    os.rename(original, final)
+                    logger.info(f"👉 Compiled sketch renamed to: {final}")
+                    return final
+            logger.warning("⚠️ HEX file not found in build directory.")
         else:
-            print("❌ Compilation failed!")
-            print(result.stderr)
+            logger.error("❌ Compilation failed!")
+            logger.error(result.stderr)
     except FileNotFoundError:
-        print("🚫 Arduino CLI not found. Check your installation and PATH.")
-
-# === RUN ===
-compile_sketch(sketch_path, board_fqbn, build_path)
+        logger.error("🚫 Arduino CLI not found. Make sure it's installed and in your PATH.")

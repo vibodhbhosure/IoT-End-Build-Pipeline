@@ -14,6 +14,13 @@ def save_metadata(path, data: dict):
         for key, value in data.items():
             f.write(f"{key}:{value}\n")
 
+def file_size_kb(path):
+    return f"{os.path.getsize(path) / 1024:.2f} KB"
+
+def sha256sum(file_path):
+    with open(file_path, 'rb') as f:
+        return hashlib.sha256(f.read()).hexdigest()
+
 def read_metadata(path):
     data = {}
     with open(path, 'r') as f:

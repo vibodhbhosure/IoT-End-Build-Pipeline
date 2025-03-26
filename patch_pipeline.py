@@ -2,6 +2,7 @@ import os
 import subprocess
 import hashlib
 from pathlib import Path
+from logger import logger
 
 # CONFIG
 AVR_OBJCOPY = "avr-objcopy"  # Make sure it's in PATH
@@ -12,24 +13,24 @@ def ensure_dir(path):
     os.makedirs(path, exist_ok=True)
 
 def run_cmd(cmd, check=True):
-    print(f"🚀 Running: {' '.join(cmd)}")
+    logger.info(f"🚀 Running: {' '.join(cmd)}")
     subprocess.run(cmd, check=check)
 
 def convert_hex_to_bin(hex_file, bin_file):
     run_cmd([AVR_OBJCOPY, "-I", "ihex", "-O", "binary", hex_file, bin_file])
-    print(f"✅ Converted HEX ➝ BIN: {bin_file}")
+    logger.info(f"✅ Converted HEX ➝ BIN: {bin_file}")
 
 def convert_bin_to_hex(bin_file, hex_file):
     run_cmd([AVR_OBJCOPY, "-I", "binary", "-O", "ihex", bin_file, hex_file])
-    print(f"✅ Converted BIN ➝ HEX: {hex_file}")
+    logger.info(f"✅ Converted BIN ➝ HEX: {hex_file}")
 
 def create_patch(base_bin, new_bin, patch_file):
     run_cmd([BSDIFF, base_bin, new_bin, patch_file])
-    print(f"✅ Patch created: {patch_file}")
+    logger.info(f"✅ Patch created: {patch_file}")
 
 def apply_patch(base_bin, reconstructed_bin, patch_file):
     run_cmd([BSPATCH, base_bin, reconstructed_bin, patch_file])
-    print(f"✅ Patch applied: {reconstructed_bin}")
+    logger.info(f"✅ Patch applied: {reconstructed_bin}")
 
 def sha256sum(file_path):
     with open(file_path, 'rb') as f:
@@ -39,11 +40,11 @@ def verify_reconstruction(new_bin, reconstructed_bin):
     hash1 = sha256sum(new_bin)
     hash2 = sha256sum(reconstructed_bin)
     if hash1 == hash2:
-        print("✅ Verification successful: Reconstructed firmware matches the new firmware.")
+        logger.info("✅ Verification successful: Reconstructed firmware matches the new firmware.")
     else:
-        print("❌ Verification failed: Hash mismatch.")
-        print(f"Expected: {hash1}")
-        print(f"Got     : {hash2}")
+        logger.error("❌ Verification failed: Hash mismatch.")
+        logger.error(f"Expected: {hash1}")
+        logger.error(f"Got     : {hash2}")
 
 # === MAIN PIPELINE ===
 def firmware_patch_pipeline(base_hex, new_hex, build_dir):
