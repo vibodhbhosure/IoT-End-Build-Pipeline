@@ -119,3 +119,8 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+compiled
+firmware
+logs
+temp
